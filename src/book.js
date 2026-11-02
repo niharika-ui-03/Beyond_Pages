@@ -7,15 +7,14 @@ export const DIM = { W: 2.4, D: 3.2, OV: 0.08, CT: 0.07 };
 const { W, D, OV, CT } = DIM;
 export const COVER_W = W + OV;
 export const COVER_D = D + OV * 2;
-const STACK = 0.55; // total thickness of the page block, however many pages there are
-const SEG = 28;     // bend resolution of each page
-const CURL = 1.2;   // how strongly a page curls while turning
+const STACK = 0.55;
+const SEG = 28;
+const CURL = 1.2;
 
 const lerp = (a, b, t) => a + (b - a) * t;
 const clamp01 = (t) => Math.min(1, Math.max(0, t));
 const smooth = (t) => t * t * (3 - 2 * t);
 
-// ---------- procedural textures (no image files) ----------
 function canvas(w, h) {
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
@@ -51,7 +50,7 @@ function coverCanvas(mode, w, ornate) {
   g.fillStyle = mode === 'color' ? P.cloth : '#808080';
   g.fillRect(0, 0, w, h);
   grain(g, w, h, 3, 0.35, 'overlay');
-  g.fillStyle = mode === 'color' ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0.18)'; // cloth weave
+  g.fillStyle = mode === 'color' ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0.18)';
   for (let i = 0; i < w; i += 4) g.fillRect(i, 0, 1.5, h);
   for (let i = 0; i < h; i += 4) g.fillRect(0, i, w, 1.5);
   if (!ornate) return c;
@@ -60,25 +59,25 @@ function coverCanvas(mode, w, ornate) {
   const m = w * 0.06;
   g.strokeStyle = color ? P.stitch : '#ffffff';
   g.lineWidth = w * 0.006;
-  g.setLineDash([w * 0.025, w * 0.016]); // stitching
+  g.setLineDash([w * 0.025, w * 0.016]);
   g.strokeRect(m, m, w - 2 * m, h - 2 * m);
   g.setLineDash([]);
 
   g.save();
   g.translate(w / 2, h * 0.45);
   g.rotate(-0.02);
-  g.fillStyle = color ? P.label : '#b0b0b0'; // paper label
+  g.fillStyle = color ? P.label : '#b0b0b0';
   g.fillRect(-w * 0.34, -h * 0.17, w * 0.68, h * 0.34);
   if (color) {
     g.globalAlpha = 0.85; g.fillStyle = P.tapes[0];
-    g.fillRect(-w * 0.1, -h * 0.19, w * 0.2, h * 0.04); // tape on the label
+    g.fillRect(-w * 0.1, -h * 0.19, w * 0.2, h * 0.04);
     g.globalAlpha = 1;
     g.fillStyle = P.ink; g.textAlign = 'center'; g.textBaseline = 'middle';
     g.font = `700 ${w * 0.14}px "Caveat", cursive`;
     g.fillText('Beyond', 0, -h * 0.07); g.fillText('Pages', 0, h * 0.03);
     g.font = `${w * 0.04}px "Special Elite", monospace`;
     g.fillStyle = P.typeInk; g.fillText('ten chapters, one subject', 0, h * 0.125);
-    g.save(); g.translate(w * 0.2, h * 0.14); g.rotate(0.14); // small rubber stamp
+    g.save(); g.translate(w * 0.2, h * 0.14); g.rotate(0.14);
     g.strokeStyle = g.fillStyle = P.red; g.lineWidth = w * 0.004;
     g.font = `${w * 0.034}px "Special Elite", monospace`;
     g.strokeRect(-w * 0.085, -h * 0.014, w * 0.17, h * 0.028); g.fillText('PRIVATE', 0, 0);
@@ -88,7 +87,7 @@ function coverCanvas(mode, w, ornate) {
   return c;
 }
 
-function edgeTexture() { // fine page lines on the side of the page block
+function edgeTexture() {
   const [c, g] = canvas(8, 128);
   for (let y = 0; y < 128; y++) {
     const v = 214 + Math.random() * 30 - (y % 4 === 0 ? 28 : 0);
@@ -109,7 +108,6 @@ function endpaperTexture() {
   return texture(c);
 }
 
-// ---------- a bendable, two-sided page ----------
 function makeSheet(frontMat, backMat, N, ST) {
   const geo = new THREE.BufferGeometry();
   const pos = new Float32Array((SEG + 1) * 6);
@@ -133,17 +131,16 @@ function makeSheet(frontMat, backMat, N, ST) {
   return { mesh, geo, pos: geo.attributes.position, N, ST };
 }
 
-// p: 0 = flat on the right, 1 = flat on the left. k = sheet number.
 function bend(s, k, p) {
   const { N, ST } = s;
   const base = p * Math.PI;
-  const lag = CURL * Math.sin(base) * (1 - 1.4 * p); // tip lags behind, then leads
+  const lag = CURL * Math.sin(base) * (1 - 1.4 * p);
   const yR = CT + (N - k) * ST, yL = CT + (k + 1) * ST;
   const yB = lerp(yR, yL, smooth(clamp01((p - 0.2) / 0.6)));
   const dl = W / SEG;
   const a = s.pos.array;
   for (let j = 0; j < 2; j++) {
-    const kk = lag * (j === 0 ? 0.7 : 1.3); // one corner curls more: a natural diagonal curl
+    const kk = lag * (j === 0 ? 0.7 : 1.3);
     let x = 0, y = 0;
     for (let i = 0; i <= SEG; i++) {
       if (i > 0) {
@@ -165,14 +162,13 @@ function halfCylinder(r, len, mat) {
   return new THREE.Mesh(g, mat);
 }
 
-// ---------- the book ----------
 export function createBook(q) {
-  const plan = buildPlan();       // all the pages, with your text flowed onto them
-  const N = plan.N;               // number of sheets
-  const ST = STACK / N;           // thickness of one sheet
+  const plan = buildPlan();
+  const N = plan.N;
+  const ST = STACK / N;
   const H = CT * 2 + STACK;
   const SPINE_R = H / 2;
-  const closedX = -(COVER_W - SPINE_R * 0.45) / 2; // centres the closed book
+  const closedX = -(COVER_W - SPINE_R * 0.45) / 2;
   const closedY = CT + STACK + CT / 2 + 0.002;
 
   const root = new THREE.Group();
@@ -189,12 +185,11 @@ export function createBook(q) {
   const band = new THREE.MeshStandardMaterial({ color: P.stitch, roughness: 0.8 });
   const endpaper = new THREE.MeshStandardMaterial({ map: endpaperTexture(), roughness: 0.85 });
 
-  // boards: [+x, -x, top, bottom, +z, -z]
   const boardGeo = new THREE.BoxGeometry(COVER_W, CT, COVER_D);
   const back = new THREE.Mesh(boardGeo, [cloth, cloth, endpaper, cloth, cloth, cloth]);
   back.position.set(COVER_W / 2, CT / 2, 0);
 
-  const cover = new THREE.Group(); // pivots on the spine
+  const cover = new THREE.Group();
   const front = new THREE.Mesh(boardGeo, [cloth, cloth, coverMat, endpaper, cloth, cloth]);
   front.position.x = COVER_W / 2;
   cover.add(front);
@@ -208,7 +203,6 @@ export function createBook(q) {
     spine.add(b);
   }
 
-  // page blocks (visible thickness with fine page lines)
   const edgeTex = edgeTexture();
   edgeTex.wrapS = edgeTex.wrapT = THREE.RepeatWrapping;
   const edgeMat = new THREE.MeshStandardMaterial({ map: edgeTex, roughness: 0.95 });
@@ -220,7 +214,6 @@ export function createBook(q) {
   rBlock.position.set(0, CT, 0);
   lBlock.position.set(0, CT, 0);
 
-  // Sheets. Textures are only built for sheets near the current spread, which keeps memory low.
   const PAPER = 0xf3ead6;
   const sheets = [], mats = [], loaded = new Array(N).fill(false);
   for (let k = 0; k < N; k++) {
@@ -245,7 +238,7 @@ export function createBook(q) {
       if (near && !loaded[k]) {
         setMap(mats[k].fm, pageTexture(plan.pages[2 * k], q.page));
         const bt = pageTexture(plan.pages[2 * k + 1], q.page);
-        bt.wrapS = THREE.RepeatWrapping; bt.repeat.x = -1; bt.offset.x = 1; // un-mirror once flipped
+        bt.wrapS = THREE.RepeatWrapping; bt.repeat.x = -1; bt.offset.x = 1;
         setMap(mats[k].bm, bt);
         loaded[k] = true;
       } else if (!near && loaded[k]) {
@@ -287,7 +280,6 @@ export function createBook(q) {
     });
   }
 
-  // Grab a page. dir +1 = lift the next page, -1 = bring the previous one back.
   function grab(dir) {
     if (busy || prog.cover < 0.99) return null;
     const k = dir > 0 ? turned : turned - 1;
@@ -309,7 +301,7 @@ export function createBook(q) {
             onComplete: () => {
               if (!complete) { turned -= dir; layout(); }
               busy = false;
-              setTimeout(ensure, 60); // load the pages that are now nearby
+              setTimeout(ensure, 60);
               resolve(complete);
             },
           });
@@ -320,8 +312,8 @@ export function createBook(q) {
 
   return {
     root, open, grab,
-    chapterAt: (s) => plan.spreadCh[s] || 0, // chapter number shown at spread s (0 = title)
-        gateAt: (s) => { const p = plan.pages[2 * s + 1]; return p && p.kind === 'heading' && p.ch >= 2 ? p.ch - 1 : 0; }, // question needed to turn past spread s
+    chapterAt: (s) => plan.spreadCh[s] || 0,
+    gateAt: (s) => { const p = plan.pages[2 * s + 1]; return p && p.kind === 'heading' && p.ch >= 2 ? p.ch - 1 : 0; },
     get spread() { return turned; },
     get isOpen() { return prog.cover > 0.99; },
     get busy() { return busy; },

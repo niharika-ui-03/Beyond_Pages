@@ -8,7 +8,7 @@ import { CHAPTERS } from './chapters.js';
 import { bindUI } from './interactions.js';
 import { QUESTIONS, NO_REPLIES, NO_UNLOCKS } from './questions.js';
 
-const SAVE = 'bp-unlocked';
+const SAVE = 'bp-unlocked-v2';
 const unlocked = new Set();
 try { JSON.parse(localStorage.getItem(SAVE) || '[]').forEach((n) => unlocked.add(n)); } catch {}
 const save = () => { try { localStorage.setItem(SAVE, JSON.stringify([...unlocked])); } catch {} };
