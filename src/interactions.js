@@ -3,17 +3,28 @@ export function bindUI({ onOpen, onStep }) {
   let hintGone = false;
   let asking = false;
 
-  const closeAsk = () => { asking = false; $('ask').hidden = true; };
+  const closeAsk = () => {
+    asking = false;
+    $('ask').hidden = true;
+  };
 
   $('open').addEventListener('click', onOpen);
 
   addEventListener('keydown', (e) => {
-    if (asking) { if (e.key === 'Escape') closeAsk(); return; } // buttons work natively
+    if (asking) {
+      if (e.key === 'Escape') closeAsk();
+      return; // buttons work natively
+    }
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     if (e.target.closest?.('input, textarea')) return;
+
     if (e.key === 'ArrowRight' || e.key === 'PageDown') onStep(1);
     else if (e.key === 'ArrowLeft' || e.key === 'PageUp') onStep(-1);
-    else if ((e.key === 'Enter' || e.key === ' ') && !$('open').hidden && document.activeElement !== $('open')) {
+    else if (
+      (e.key === 'Enter' || e.key === ' ') &&
+      !$('open').hidden &&
+      document.activeElement !== $('open')
+    ) {
       e.preventDefault();
       onOpen();
     }
@@ -37,7 +48,8 @@ export function bindUI({ onOpen, onStep }) {
       $('ask-yes').focus();
       const answer = (choice) => {
         const r = onAnswer(choice);
-        if (r.ok) closeAsk(); else $('ask-msg').textContent = r.msg;
+        if (r.ok) closeAsk();
+        else $('ask-msg').textContent = r.msg;
       };
       $('ask-yes').onclick = () => answer('yes');
       $('ask-no').onclick = () => answer('no');
