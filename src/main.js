@@ -8,10 +8,9 @@ import { CHAPTERS } from './chapters.js';
 import { bindUI } from './interactions.js';
 import { QUESTIONS, NO_REPLIES, NO_UNLOCKS } from './questions.js';
 
-const SAVE = 'bp-unlocked-v2';
+// Progress is kept only in memory, so every visit starts from Question 1.
 const unlocked = new Set();
-try { JSON.parse(localStorage.getItem(SAVE) || '[]').forEach((n) => unlocked.add(n)); } catch {}
-const save = () => { try { localStorage.setItem(SAVE, JSON.stringify([...unlocked])); } catch {} };
+const save = () => {};
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const coarse = matchMedia('(pointer: coarse)').matches;
@@ -49,7 +48,7 @@ async function boot() {
 }
 
 const GATE_SHIFT = 0;
-const DEBUG_GATE = true;
+const DEBUG_GATE = false;
 
 function gate(dir) {
   if (dir <= 0) return 0;
