@@ -51,13 +51,15 @@ async function boot() {
 }
 
 // which question (if any) blocks turning forward from the current spread
-// Question n guards the exit from chapter n: it fires when the next spread belongs to a later chapter.
+// If the question shows up one chapter too late, try GATE_SHIFT = 1. If too early, try -1.
+const GATE_SHIFT = 0;
+const DEBUG_GATE = true; // set to false once it works
+
 function gate(dir) {
   if (dir <= 0) return 0;
-  const here = book.chapterAt(book.spread);     // chapter on the current spread (0 = title page)
-  const next = book.chapterAt(book.spread + 1); // chapter on the spread we'd turn to
-  if (!here || !next || next === here) return 0;
-  return unlocked.has(here) ? 0 : here;
+  const q = book.gateAt(book.spread + GATE_SHIFT);
+  if (DEBUG_GATE) console.log('[gate] spread', book.spread, 'chapter', book.chapterAt(book.spread), 'gateAt', q, 'unlocked', [...unlocked]);
+  return q && !unlocked.has(q) ? q : 0;
 }
 
 function askQuestion(q) {
