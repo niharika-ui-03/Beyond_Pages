@@ -14,8 +14,14 @@ export const QUESTIONS = [
 export const NO_REPLIES = [
   'Hmm. Are you sure? \u{1F60F}',
   'Wrong answer. Think again.',
-  'Na istam... but try again. \u{1F602}',
-  'Evidence says otherwise. Try again.',
+  'poove poyi mee SUMEDHA thoo matladukoo. \u{1F602}',
+  'Xtrall cheyyakundaa yes click chey bangaram.',
+  'Ayyoo. Nee answer wrong. \u{1F60F}',
+  'Enough raa chitti ',
+  'endhuku idhi antha YES click chesthe aipoddhi gaa',
+  'Nice raa nanna nee answer wrong. \u{1F60F}',
+  'Niku time waste YES click cheyyy',
+  'YES click cheyyakunda Nuv next page ki ela velthavoo kooda choostha. \u{1F602}',
 ];
 
 // true = NO also unlocks the next page
